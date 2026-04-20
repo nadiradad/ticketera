@@ -2,20 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Ticket;
 use App\Models\Cliente;
 use App\Models\Equipo;
-use App\Models\Usuario;
 use App\Models\Estado;
 use App\Models\Repuesto;
+use App\Models\Ticket;
+use App\Models\Usuario;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TicketController extends Controller
 {
     public function index()
     {
         $tickets = Ticket::with(['cliente', 'equipo', 'tecnico', 'estadoActual'])->get();
+
         return view('tickets.index', compact('tickets'));
     }
 
@@ -39,7 +40,7 @@ class TicketController extends Controller
             'descripcion' => $request->descripcion,
             'monto_servicio' => 0,
             'total' => 0,
-            'user_id' => Auth::id()
+            'user_id' => Auth::id(),
         ]);
 
         return redirect()->route('tickets.index');
@@ -47,8 +48,21 @@ class TicketController extends Controller
 
     public function show($id)
     {
-        $ticket = Ticket::with(['cliente', 'equipo', 'tecnico', 'estadoActual', 'historial'])->findOrFail($id);
-        return view('tickets.show', compact('ticket'));
+        $ticket = Ticket::query()
+            ->with([
+                'cliente',
+                'equipo',
+                'tecnico',
+                'estadoActual',
+                'historial.estado',
+                'historial.usuario',
+                'repuestos',
+            ])
+            ->findOrFail($id);
+
+        $repuestos = Repuesto::query()->orderBy('nombre')->get();
+
+        return view('tickets.show', compact('ticket', 'repuestos'));
     }
 
     public function edit($id)
@@ -71,7 +85,7 @@ class TicketController extends Controller
             'equipo_id' => $request->equipo_id,
             'tecnico_id' => $request->tecnico_id,
             'estado_actual_id' => $request->estado_actual_id,
-            'descripcion' => $request->descripcion
+            'descripcion' => $request->descripcion,
         ]);
 
         return redirect()->route('tickets.index');
@@ -79,7 +93,9 @@ class TicketController extends Controller
 
     public function destroy($id)
     {
-        Ticket::delete($id);
+        $ticket = Ticket::findOrFail($id);
+        $ticket->delete();
+
         return redirect()->route('tickets.index');
     }
 
@@ -90,8 +106,8 @@ class TicketController extends Controller
         $ticket->repuestos()->syncWithoutDetaching([
             $request->repuesto_id => [
                 'cantidad' => $request->cantidad,
-                'precio_unitario' => $request->precio_unitario
-            ]
+                'precio_unitario' => $request->precio_unitario,
+            ],
         ]);
 
         $this->recalcularTotal($ticket);
