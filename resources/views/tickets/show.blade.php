@@ -11,10 +11,10 @@
         <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div>
                 <a
-                    href="{{ route('tickets.index') }}"
+                    href="{{ auth()->user()->isTecnico() ? route('mis-tickets.index') : route('tickets.index') }}"
                     class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
                 >
-                    ← Volver al listado
+                    ← {{ auth()->user()->isTecnico() ? 'Volver a mis tickets' : 'Volver al listado' }}
                 </a>
                 <h1 class="mt-4 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
                     Ticket #{{ $ticket->id }}
@@ -24,14 +24,16 @@
                     {{ $ticket->created_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}
                 </p>
             </div>
-            <div class="flex flex-wrap gap-2">
-                <a
-                    href="{{ route('tickets.edit', $ticket->id) }}"
-                    class="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
-                >
-                    Editar
-                </a>
-            </div>
+            @can('update', $ticket)
+                <div class="flex flex-wrap gap-2">
+                    <a
+                        href="{{ route('tickets.edit', $ticket) }}"
+                        class="inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                    >
+                        Editar
+                    </a>
+                </div>
+            @endcan
         </div>
 
         <div class="grid gap-6 lg:grid-cols-3">
@@ -74,68 +76,70 @@
                     </div>
                 </dl>
 
-                <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h2 class="text-base font-semibold text-slate-900">Agregar repuesto</h2>
-                    <p class="mt-0.5 text-sm text-slate-500">Registrá piezas usados en este ticket.</p>
+                @can('update', $ticket)
+                    <div class="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <h2 class="text-base font-semibold text-slate-900">Agregar repuesto</h2>
+                        <p class="mt-0.5 text-sm text-slate-500">Registrá piezas usados en este ticket.</p>
 
-                    <form
-                        method="POST"
-                        action="{{ route('tickets.repuestos.agregar', $ticket->id) }}"
-                        class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:items-end"
-                    >
-                        @csrf
-                        <div class="sm:col-span-2 lg:col-span-5">
-                            <label for="repuesto_id" class="block text-sm font-medium text-slate-700">Repuesto</label>
-                            <select
-                                id="repuesto_id"
-                                name="repuesto_id"
-                                required
-                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                            >
-                                <option value="" disabled selected>Seleccionar…</option>
-                                @foreach ($repuestos as $r)
-                                    <option value="{{ $r->id }}">
-                                        {{ $r->nombre }} (${{ number_format($r->precio_base, 2, ',', '.') }})
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="lg:col-span-3">
-                            <label for="cantidad" class="block text-sm font-medium text-slate-700">Cantidad</label>
-                            <input
-                                id="cantidad"
-                                type="number"
-                                name="cantidad"
-                                min="1"
-                                required
-                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                placeholder="1"
-                            />
-                        </div>
-                        <div class="lg:col-span-3">
-                            <label for="precio_unitario" class="block text-sm font-medium text-slate-700">
-                                Precio unitario
-                            </label>
-                            <input
-                                id="precio_unitario"
-                                type="number"
-                                step="0.01"
-                                name="precio_unitario"
-                                required
-                                class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                placeholder="0.00"
-                            />
-                        </div>
-                        <div class="sm:col-span-2 lg:col-span-1">
-                            <button
-                                type="submit"
-                                class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:w-auto"
-                            >
-                                Agregar
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                        <form
+                            method="POST"
+                            action="{{ route('tickets.repuestos.agregar', $ticket) }}"
+                            class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:items-end"
+                        >
+                            @csrf
+                            <div class="sm:col-span-2 lg:col-span-5">
+                                <label for="repuesto_id" class="block text-sm font-medium text-slate-700">Repuesto</label>
+                                <select
+                                    id="repuesto_id"
+                                    name="repuesto_id"
+                                    required
+                                    class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                >
+                                    <option value="" disabled selected>Seleccionar…</option>
+                                    @foreach ($repuestos as $r)
+                                        <option value="{{ $r->id }}">
+                                            {{ $r->nombre }} (${{ number_format($r->precio_base, 2, ',', '.') }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="lg:col-span-3">
+                                <label for="cantidad" class="block text-sm font-medium text-slate-700">Cantidad</label>
+                                <input
+                                    id="cantidad"
+                                    type="number"
+                                    name="cantidad"
+                                    min="1"
+                                    required
+                                    class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    placeholder="1"
+                                />
+                            </div>
+                            <div class="lg:col-span-3">
+                                <label for="precio_unitario" class="block text-sm font-medium text-slate-700">
+                                    Precio unitario
+                                </label>
+                                <input
+                                    id="precio_unitario"
+                                    type="number"
+                                    step="0.01"
+                                    name="precio_unitario"
+                                    required
+                                    class="mt-1 block w-full rounded-lg border-slate-300 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                    placeholder="0.00"
+                                />
+                            </div>
+                            <div class="sm:col-span-2 lg:col-span-1">
+                                <button
+                                    type="submit"
+                                    class="w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:w-auto"
+                                >
+                                    Agregar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                @endcan
 
                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                     <div class="border-b border-slate-100 px-5 py-4 sm:px-6">

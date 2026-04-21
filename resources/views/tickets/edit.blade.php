@@ -4,7 +4,7 @@
     <div class="space-y-8">
         <div>
             <a
-                href="{{ route('tickets.show', $ticket->id) }}"
+                href="{{ route('tickets.show', $ticket) }}"
                 class="text-sm font-medium text-indigo-600 hover:text-indigo-500"
             >
                 ← Volver al detalle
@@ -16,7 +16,7 @@
         </div>
 
         <div class="max-w-2xl rounded-xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8">
-            <form method="POST" action="{{ route('tickets.update', $ticket->id) }}" class="space-y-6">
+            <form method="POST" action="{{ route('tickets.update', $ticket) }}" class="space-y-6">
                 @csrf
                 @method('PUT')
 
@@ -102,7 +102,7 @@
                         Actualizar
                     </button>
                     <a
-                        href="{{ route('tickets.show', $ticket->id) }}"
+                        href="{{ route('tickets.show', $ticket) }}"
                         class="inline-flex justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
                     >
                         Cancelar

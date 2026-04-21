@@ -9,12 +9,14 @@
                     Listado completo con altas, edición y baja.
                 </p>
             </div>
-            <a
-                href="{{ route('tickets.create') }}"
-                class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-            >
-                Nuevo ticket
-            </a>
+            @can('create', App\Models\Ticket::class)
+                <a
+                    href="{{ route('tickets.create') }}"
+                    class="inline-flex items-center justify-center rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                >
+                    Nuevo ticket
+                </a>
+            @endcan
         </div>
 
         <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -22,12 +24,14 @@
                 <div class="px-5 py-16 text-center sm:px-6">
                     <p class="text-sm font-medium text-slate-900">Todavía no hay tickets</p>
                     <p class="mt-1 text-sm text-slate-500">Creá el primero para empezar a trabajar la cola.</p>
-                    <a
-                        href="{{ route('tickets.create') }}"
-                        class="mt-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
-                    >
-                        Crear ticket
-                    </a>
+                    @can('create', App\Models\Ticket::class)
+                        <a
+                            href="{{ route('tickets.create') }}"
+                            class="mt-4 inline-flex rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500"
+                        >
+                            Crear ticket
+                        </a>
+                    @endcan
                 </div>
             @else
                 <div class="overflow-x-auto">
@@ -65,33 +69,39 @@
                                         {{ $ticket->tecnico->nombre ?? '—' }}
                                     </td>
                                     <td class="whitespace-nowrap px-5 py-3 text-right sm:px-6">
-                                        <a
-                                            href="{{ route('tickets.show', $ticket->id) }}"
-                                            class="mr-1 inline-flex rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
-                                        >
-                                            Ver
-                                        </a>
-                                        <a
-                                            href="{{ route('tickets.edit', $ticket->id) }}"
-                                            class="mr-1 inline-flex rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500"
-                                        >
-                                            Editar
-                                        </a>
-                                        <form
-                                            action="{{ route('tickets.destroy', $ticket->id) }}"
-                                            method="POST"
-                                            class="inline"
-                                            onsubmit="return confirm('¿Eliminar este ticket? Esta acción no se puede deshacer.');"
-                                        >
-                                            @csrf
-                                            @method('DELETE')
-                                            <button
-                                                type="submit"
-                                                class="inline-flex rounded-lg border border-red-200 bg-white px-2.5 py-1 text-xs font-semibold text-red-700 shadow-sm hover:bg-red-50"
+                                        @can('view', $ticket)
+                                            <a
+                                                href="{{ route('tickets.show', $ticket) }}"
+                                                class="mr-1 inline-flex rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50"
                                             >
-                                                Eliminar
-                                            </button>
-                                        </form>
+                                                Ver
+                                            </a>
+                                        @endcan
+                                        @can('update', $ticket)
+                                            <a
+                                                href="{{ route('tickets.edit', $ticket) }}"
+                                                class="mr-1 inline-flex rounded-lg bg-indigo-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-indigo-500"
+                                            >
+                                                Editar
+                                            </a>
+                                        @endcan
+                                        @can('delete', $ticket)
+                                            <form
+                                                action="{{ route('tickets.destroy', $ticket) }}"
+                                                method="POST"
+                                                class="inline"
+                                                onsubmit="return confirm('¿Eliminar este ticket? Esta acción no se puede deshacer.');"
+                                            >
+                                                @csrf
+                                                @method('DELETE')
+                                                <button
+                                                    type="submit"
+                                                    class="inline-flex rounded-lg border border-red-200 bg-white px-2.5 py-1 text-xs font-semibold text-red-700 shadow-sm hover:bg-red-50"
+                                                >
+                                                    Eliminar
+                                                </button>
+                                            </form>
+                                        @endcan
                                     </td>
                                 </tr>
                             @endforeach

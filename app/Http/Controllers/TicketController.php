@@ -8,20 +8,32 @@ use App\Models\Estado;
 use App\Models\Repuesto;
 use App\Models\Ticket;
 use App\Models\Usuario;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\View\View;
 
 class TicketController extends Controller
 {
-    public function index()
+    public function index(): View|RedirectResponse
     {
-        $tickets = Ticket::with(['cliente', 'equipo', 'tecnico', 'estadoActual'])->get();
+        if (Auth::user()->isTecnico()) {
+            return redirect()->route('mis-tickets.index');
+        }
+
+        $this->authorize('viewAny', Ticket::class);
+
+        $tickets = Ticket::with(['cliente', 'equipo', 'tecnico', 'estadoActual'])
+            ->orderByDesc('updated_at')
+            ->get();
 
         return view('tickets.index', compact('tickets'));
     }
 
-    public function create()
+    public function create(): View
     {
+        $this->authorize('create', Ticket::class);
+
         $clientes = Cliente::all();
         $equipos = Equipo::all();
         $tecnicos = Usuario::where('rol', 'tecnico')->get();
@@ -30,44 +42,55 @@ class TicketController extends Controller
         return view('tickets.create', compact('clientes', 'equipos', 'tecnicos', 'estados'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Ticket::class);
+
+        $request->merge([
+            'tecnico_id' => $request->filled('tecnico_id') ? $request->input('tecnico_id') : null,
+        ]);
+
+        $data = $request->validate([
+            'cliente_id' => ['required', 'exists:clientes,id'],
+            'equipo_id' => ['required', 'exists:equipos,id'],
+            'tecnico_id' => ['nullable', 'exists:usuarios,id'],
+            'estado_actual_id' => ['required', 'exists:estados,id'],
+            'descripcion' => ['required', 'string'],
+        ]);
+
         $ticket = Ticket::create([
-            'cliente_id' => $request->cliente_id,
-            'equipo_id' => $request->equipo_id,
-            'tecnico_id' => $request->tecnico_id,
-            'estado_actual_id' => $request->estado_actual_id,
-            'descripcion' => $request->descripcion,
+            ...$data,
             'monto_servicio' => 0,
             'total' => 0,
             'user_id' => Auth::id(),
         ]);
 
-        return redirect()->route('tickets.index');
+        return redirect()->route('tickets.show', $ticket);
     }
 
-    public function show($id)
+    public function show(Ticket $ticket): View
     {
-        $ticket = Ticket::query()
-            ->with([
-                'cliente',
-                'equipo',
-                'tecnico',
-                'estadoActual',
-                'historial.estado',
-                'historial.usuario',
-                'repuestos',
-            ])
-            ->findOrFail($id);
+        $this->authorize('view', $ticket);
+
+        $ticket->load([
+            'cliente',
+            'equipo',
+            'tecnico',
+            'estadoActual',
+            'historial.estado',
+            'historial.usuario',
+            'repuestos',
+        ]);
 
         $repuestos = Repuesto::query()->orderBy('nombre')->get();
 
         return view('tickets.show', compact('ticket', 'repuestos'));
     }
 
-    public function edit($id)
+    public function edit(Ticket $ticket): View
     {
-        $ticket = Ticket::findOrFail($id);
+        $this->authorize('update', $ticket);
+
         $clientes = Cliente::all();
         $equipos = Equipo::all();
         $tecnicos = Usuario::where('rol', 'tecnico')->get();
@@ -76,32 +99,45 @@ class TicketController extends Controller
         return view('tickets.edit', compact('ticket', 'clientes', 'equipos', 'tecnicos', 'estados'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, Ticket $ticket): RedirectResponse
     {
-        $ticket = Ticket::findOrFail($id);
+        $this->authorize('update', $ticket);
 
-        $ticket->update([
-            'cliente_id' => $request->cliente_id,
-            'equipo_id' => $request->equipo_id,
-            'tecnico_id' => $request->tecnico_id,
-            'estado_actual_id' => $request->estado_actual_id,
-            'descripcion' => $request->descripcion,
+        $request->merge([
+            'tecnico_id' => $request->filled('tecnico_id') ? $request->input('tecnico_id') : null,
         ]);
 
-        return redirect()->route('tickets.index');
+        $data = $request->validate([
+            'cliente_id' => ['required', 'exists:clientes,id'],
+            'equipo_id' => ['required', 'exists:equipos,id'],
+            'tecnico_id' => ['nullable', 'exists:usuarios,id'],
+            'estado_actual_id' => ['required', 'exists:estados,id'],
+            'descripcion' => ['required', 'string'],
+        ]);
+
+        $ticket->update($data);
+
+        return redirect()->route('tickets.show', $ticket);
     }
 
-    public function destroy($id)
+    public function destroy(Ticket $ticket): RedirectResponse
     {
-        $ticket = Ticket::findOrFail($id);
+        $this->authorize('delete', $ticket);
+
         $ticket->delete();
 
         return redirect()->route('tickets.index');
     }
 
-    public function agregarRepuesto(Request $request, $id)
+    public function agregarRepuesto(Request $request, Ticket $ticket): RedirectResponse
     {
-        $ticket = Ticket::findOrFail($id);
+        $this->authorize('update', $ticket);
+
+        $request->validate([
+            'repuesto_id' => ['required', 'exists:repuestos,id'],
+            'cantidad' => ['required', 'integer', 'min:1'],
+            'precio_unitario' => ['required', 'numeric', 'min:0'],
+        ]);
 
         $ticket->repuestos()->syncWithoutDetaching([
             $request->repuesto_id => [
@@ -115,7 +151,7 @@ class TicketController extends Controller
         return redirect()->back();
     }
 
-    private function recalcularTotal($ticket)
+    private function recalcularTotal(Ticket $ticket): void
     {
         $totalRepuestos = 0;
 

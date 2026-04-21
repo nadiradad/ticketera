@@ -54,6 +54,52 @@
             </div>
         </div>
 
+        <div>
+            <h2 class="text-base font-semibold text-slate-900">Estadísticas</h2>
+            <p class="mt-0.5 text-sm text-slate-500">
+                @if (auth()->user()->isTecnico())
+                    Métricas y gráficos solo de tus tickets asignados (independiente de los filtros de la tabla).
+                @else
+                    Vista global de todos los tickets (independiente de los filtros de la tabla).
+                @endif
+            </p>
+
+            <div class="mt-5 grid gap-6 lg:grid-cols-2">
+                <div
+                    class="overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+                >
+                    <h3 class="text-sm font-semibold text-slate-800">Por estado</h3>
+                    <p class="mt-0.5 text-xs text-slate-500">Distribución actual según estado del ticket.</p>
+                    <div class="relative mx-auto mt-4 h-64 max-w-xs sm:h-72">
+                        <canvas id="chart-tickets-por-estado" aria-label="Gráfico de tickets por estado"></canvas>
+                    </div>
+                </div>
+                <div
+                    class="overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+                >
+                    <h3 class="text-sm font-semibold text-slate-800">Últimos 30 días</h3>
+                    <p class="mt-0.5 text-xs text-slate-500">Tickets creados por día.</p>
+                    <div class="relative mt-4 h-64 sm:h-72">
+                        <canvas id="chart-tickets-por-dia" aria-label="Gráfico de tickets creados por día"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div
+                class="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
+            >
+                <h3 class="text-sm font-semibold text-slate-800">Por técnico</h3>
+                <p class="mt-0.5 text-xs text-slate-500">Cantidad de tickets asignados (incluye sin asignar).</p>
+                <div class="relative mt-4 h-56 sm:h-64">
+                    <canvas id="chart-tickets-por-tecnico" aria-label="Gráfico de tickets por técnico"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <script id="dashboard-charts-payload" type="application/json">
+            @json($chartData)
+        </script>
+
         <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <h2 class="text-base font-semibold text-slate-900">Filtros</h2>
             <p class="mt-0.5 text-sm text-slate-500">Refiná la lista sin salir del tablero.</p>
@@ -205,3 +251,7 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    @vite(['resources/js/dashboard-charts.js'])
+@endpush

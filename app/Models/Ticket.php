@@ -44,12 +44,13 @@ class Ticket extends Model
     }
 
     protected $fillable = [
+        'user_id',
         'cliente_id',
         'equipo_id',
         'tecnico_id',
         'estado_actual_id',
         'descripcion',
         'monto_servicio',
-        'total'
+        'total',
     ];
 }

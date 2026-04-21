@@ -1,34 +1,86 @@
+@php
+    $u = auth()->user();
+@endphp
 <nav
     class="border-b border-slate-200 bg-white shadow-sm"
     x-data="{ open: false }"
 >
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="flex h-16 items-center justify-between">
-            <div class="flex shrink-0 items-center gap-8">
+            <div class="flex shrink-0 items-center gap-6 lg:gap-8">
                 <a
                     href="{{ route('dashboard') }}"
                     class="text-lg font-semibold tracking-tight text-slate-900"
                 >
                     Ticketera
                 </a>
-                <div class="hidden items-center gap-1 md:flex">
+                <div class="hidden flex-wrap items-center gap-1 md:flex">
                     <a
                         href="{{ route('dashboard') }}"
                         class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('dashboard') ? 'bg-slate-100 text-slate-900' : '' }}"
                     >
                         Dashboard
                     </a>
-                    <a
-                        href="{{ route('tickets.index') }}"
-                        class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('tickets.*') ? 'bg-slate-100 text-slate-900' : '' }}"
-                    >
-                        Tickets
-                    </a>
+
+                    @if ($u->isTecnico())
+                        <a
+                            href="{{ route('mis-tickets.index') }}"
+                            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('mis-tickets.*') ? 'bg-slate-100 text-slate-900' : '' }}"
+                        >
+                            Mis tickets
+                        </a>
+                    @else
+                        <a
+                            href="{{ route('tickets.index') }}"
+                            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('tickets.*') ? 'bg-slate-100 text-slate-900' : '' }}"
+                        >
+                            Tickets
+                        </a>
+                    @endif
+
+                    @if ($u->isAdministrador() || $u->isRecepcionista())
+                        <a
+                            href="{{ route('clientes.index') }}"
+                            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('clientes.*') ? 'bg-slate-100 text-slate-900' : '' }}"
+                        >
+                            Clientes
+                        </a>
+                        <a
+                            href="{{ route('equipos.index') }}"
+                            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('equipos.*') ? 'bg-slate-100 text-slate-900' : '' }}"
+                        >
+                            Equipos
+                        </a>
+                        <a
+                            href="{{ route('repuestos.index') }}"
+                            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('repuestos.*') ? 'bg-slate-100 text-slate-900' : '' }}"
+                        >
+                            Repuestos
+                        </a>
+                    @endif
+
+                    @if ($u->isAdministrador())
+                        <a
+                            href="{{ route('admin.staff.index') }}"
+                            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-slate-900 {{ request()->routeIs('admin.staff.*') ? 'bg-slate-100 text-slate-900' : '' }}"
+                        >
+                            Personal
+                        </a>
+                    @endif
                 </div>
             </div>
 
-            <div class="hidden items-center gap-4 md:flex">
-                <span class="text-sm text-slate-600">{{ auth()->user()->name }}</span>
+            <div class="hidden items-center gap-3 md:flex">
+                <span class="rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-medium text-slate-700">
+                    @if ($u->isAdministrador())
+                        Administrador
+                    @elseif ($u->isTecnico())
+                        Técnico
+                    @else
+                        Recepción
+                    @endif
+                </span>
+                <span class="text-sm text-slate-600">{{ $u->name }}</span>
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button
@@ -67,14 +119,51 @@
                 >
                     Dashboard
                 </a>
-                <a
-                    href="{{ route('tickets.index') }}"
-                    class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
-                >
-                    Tickets
-                </a>
+                @if ($u->isTecnico())
+                    <a
+                        href="{{ route('mis-tickets.index') }}"
+                        class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                    >
+                        Mis tickets
+                    </a>
+                @else
+                    <a
+                        href="{{ route('tickets.index') }}"
+                        class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                    >
+                        Tickets
+                    </a>
+                @endif
+                @if ($u->isAdministrador() || $u->isRecepcionista())
+                    <a
+                        href="{{ route('clientes.index') }}"
+                        class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                    >
+                        Clientes
+                    </a>
+                    <a
+                        href="{{ route('equipos.index') }}"
+                        class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                    >
+                        Equipos
+                    </a>
+                    <a
+                        href="{{ route('repuestos.index') }}"
+                        class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                    >
+                        Repuestos
+                    </a>
+                @endif
+                @if ($u->isAdministrador())
+                    <a
+                        href="{{ route('admin.staff.index') }}"
+                        class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100"
+                    >
+                        Personal
+                    </a>
+                @endif
                 <p class="mt-2 px-3 text-xs font-medium uppercase tracking-wide text-slate-400">
-                    {{ auth()->user()->name }}
+                    {{ $u->name }}
                 </p>
                 <form method="POST" action="{{ route('logout') }}" class="px-3">
                     @csrf
