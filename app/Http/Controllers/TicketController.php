@@ -12,9 +12,11 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class TicketController extends Controller
 {
+    use AuthorizesRequests;
     public function index(): View|RedirectResponse
     {
         if (Auth::user()->isTecnico()) {
@@ -131,6 +133,7 @@ class TicketController extends Controller
 
     public function agregarRepuesto(Request $request, Ticket $ticket): RedirectResponse
     {
+        
         $this->authorize('update', $ticket);
 
         $request->validate([
