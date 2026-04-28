@@ -24,7 +24,7 @@ class TicketPolicy
 
         $uid = $user->usuario?->id;
 
-        return $uid !== null && (int) $ticket->tecnico_id === (int) $uid;
+        return $uid !== null && ($ticket->tecnico_id === null || (int) $ticket->tecnico_id === (int) $uid);
     }
 
     public function create(User $user): bool
@@ -44,10 +44,15 @@ class TicketPolicy
 
         $uid = $user->usuario?->id;
 
-        return $uid !== null && (int) $ticket->tecnico_id === (int) $uid;
+        return $uid !== null && ($ticket->tecnico_id === null || (int) $ticket->tecnico_id === (int) $uid);
     }
 
     public function delete(User $user, Ticket $ticket): bool
+    {
+        return $user->isAdministrador();
+    }
+
+    public function editBase(User $user, Ticket $ticket): bool
     {
         return $user->isAdministrador();
     }

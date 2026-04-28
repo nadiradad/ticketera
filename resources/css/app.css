@@ -5,3 +5,28 @@
 [x-cloak] {
     display: none !important;
 }
+
+@layer base {
+    .dark [type='text'], 
+    .dark input:where(:not([type])), 
+    .dark [type='email'], 
+    .dark [type='url'], 
+    .dark [type='password'], 
+    .dark [type='number'], 
+    .dark [type='date'], 
+    .dark [type='datetime-local'], 
+    .dark [type='month'], 
+    .dark [type='search'], 
+    .dark [type='tel'], 
+    .dark [type='time'], 
+    .dark [type='week'], 
+    .dark [multiple], 
+    .dark textarea, 
+    .dark select {
+        @apply bg-slate-800 text-slate-100 border-slate-600;
+    }
+    
+    .dark select option {
+        @apply bg-slate-800 text-slate-100;
+    }
+}

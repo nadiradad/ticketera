@@ -23,6 +23,16 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/tickets/{ticket}/repuestos', [TicketController::class, 'agregarRepuesto'])
         ->name('tickets.repuestos.agregar');
 
+    Route::post('/tickets/{ticket}/historial', [TicketController::class, 'agregarHistorial'])
+        ->name('tickets.historial.agregar');
+
+    Route::post('/notificaciones/{id}/marcar-leida', function (string $id) {
+        $notification = auth()->user()->notifications()->findOrFail($id);
+        $notification->markAsRead();
+
+        return redirect()->route('tickets.show', $notification->data['ticket_id']);
+    })->name('notificaciones.marcar-leida');
+
     Route::middleware(['role:administrador,recepcionista'])->group(function () {
         Route::resource('clientes', ClienteController::class)->except(['show']);
         Route::resource('equipos', EquipoController::class)->except(['show']);

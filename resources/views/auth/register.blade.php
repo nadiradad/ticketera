@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h1 class="text-xl font-bold text-slate-900">Crear cuenta</h1>
-        <p class="mt-1 text-sm text-slate-600">Completá los datos para empezar a usar Ticketera.</p>
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Crear cuenta</h1>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Completá los datos para empezar a usar Ticketera.</p>
     </div>
 
     <form method="POST" action="{{ route('register') }}" class="space-y-5">
@@ -64,7 +64,7 @@
 
         <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-end">
             <a
-                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-center text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50 sm:me-3"
+                class="inline-flex items-center justify-center rounded-lg border border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800 px-4 py-2.5 text-center text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm dark:shadow-none transition hover:bg-slate-50 dark:hover:bg-slate-900 sm:me-3"
                 href="{{ route('login') }}"
             >
                 Ya tengo cuenta

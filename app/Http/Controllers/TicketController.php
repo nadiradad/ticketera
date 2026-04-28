@@ -5,18 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Cliente;
 use App\Models\Equipo;
 use App\Models\Estado;
+use App\Models\EstadoHistorial;
 use App\Models\Repuesto;
 use App\Models\Ticket;
 use App\Models\Usuario;
+use App\Notifications\TicketAsignado;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class TicketController extends Controller
 {
     use AuthorizesRequests;
+
     public function index(): View|RedirectResponse
     {
         if (Auth::user()->isTecnico()) {
@@ -67,6 +70,10 @@ class TicketController extends Controller
             'user_id' => Auth::id(),
         ]);
 
+        if ($ticket->tecnico_id && $ticket->tecnico->user) {
+            $ticket->tecnico->user->notify(new TicketAsignado($ticket));
+        }
+
         return redirect()->route('tickets.show', $ticket);
     }
 
@@ -85,13 +92,20 @@ class TicketController extends Controller
         ]);
 
         $repuestos = Repuesto::query()->orderBy('nombre')->get();
+        $estados = Estado::all();
+        
+        if (Auth::user()->isTecnico()) {
+            $tecnicos = Usuario::where('id', Auth::user()->usuario?->id)->get();
+        } else {
+            $tecnicos = Usuario::where('rol', 'tecnico')->get();
+        }
 
-        return view('tickets.show', compact('ticket', 'repuestos'));
+        return view('tickets.show', compact('ticket', 'repuestos', 'estados', 'tecnicos'));
     }
 
     public function edit(Ticket $ticket): View
     {
-        $this->authorize('update', $ticket);
+        $this->authorize('editBase', $ticket);
 
         $clientes = Cliente::all();
         $equipos = Equipo::all();
@@ -103,7 +117,7 @@ class TicketController extends Controller
 
     public function update(Request $request, Ticket $ticket): RedirectResponse
     {
-        $this->authorize('update', $ticket);
+        $this->authorize('editBase', $ticket);
 
         $request->merge([
             'tecnico_id' => $request->filled('tecnico_id') ? $request->input('tecnico_id') : null,
@@ -117,7 +131,12 @@ class TicketController extends Controller
             'descripcion' => ['required', 'string'],
         ]);
 
+        $oldTecnicoId = $ticket->tecnico_id;
         $ticket->update($data);
+
+        if ($ticket->tecnico_id && $ticket->tecnico_id !== $oldTecnicoId && $ticket->tecnico->user) {
+            $ticket->tecnico->user->notify(new TicketAsignado($ticket));
+        }
 
         return redirect()->route('tickets.show', $ticket);
     }
@@ -133,7 +152,7 @@ class TicketController extends Controller
 
     public function agregarRepuesto(Request $request, Ticket $ticket): RedirectResponse
     {
-        
+
         $this->authorize('update', $ticket);
 
         $request->validate([
@@ -164,5 +183,54 @@ class TicketController extends Controller
 
         $ticket->total = $ticket->monto_servicio + $totalRepuestos;
         $ticket->save();
+    }
+
+    public function agregarHistorial(Request $request, Ticket $ticket): RedirectResponse
+    {
+        $this->authorize('update', $ticket);
+
+        $request->merge([
+            'tecnico_id' => $request->filled('tecnico_id') ? $request->input('tecnico_id') : null,
+        ]);
+
+        if (Auth::user()->isTecnico() && $request->input('tecnico_id') && $request->input('tecnico_id') != Auth::user()->usuario?->id) {
+            abort(403, 'No puedes asignar el ticket a otro técnico.');
+        }
+
+        $request->validate([
+            'estado_id' => ['required', 'exists:estados,id'],
+            'tecnico_id' => ['nullable', 'exists:usuarios,id'],
+            'comentario' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $oldTecnicoId = $ticket->tecnico_id;
+        $newTecnicoId = $request->input('tecnico_id');
+        $cambioEstado = $ticket->estado_actual_id != $request->estado_id;
+        $cambioTecnico = $oldTecnicoId != $newTecnicoId;
+
+        if (!$cambioEstado && !$cambioTecnico && empty($request->comentario)) {
+            return redirect()->back();
+        }
+
+        EstadoHistorial::create([
+            'ticket_id' => $ticket->id,
+            'estado_id' => $request->estado_id,
+            'usuario_id' => Auth::user()->usuario?->id,
+            'comentario' => $request->comentario,
+            'fecha' => now(),
+        ]);
+
+        if ($cambioEstado || $cambioTecnico) {
+            $ticket->update([
+                'estado_actual_id' => $request->estado_id,
+                'tecnico_id' => $newTecnicoId,
+            ]);
+        }
+
+        if ($cambioTecnico && $ticket->tecnico_id && $ticket->tecnico->user) {
+            $ticket->tecnico->user->notify(new TicketAsignado($ticket));
+        }
+
+        return redirect()->back();
     }
 }

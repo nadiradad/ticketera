@@ -14,22 +14,28 @@ class MisTicketsController extends Controller
         $user = $request->user();
         $uid = $user->usuario?->id;
 
-        $query = Ticket::with(['cliente', 'equipo', 'estadoActual']);
+        $queryMisTickets = Ticket::with(['cliente', 'equipo', 'estadoActual']);
+        $querySinAsignar = Ticket::with(['cliente', 'equipo', 'estadoActual']);
 
         if ($uid) {
-            $query->where('tecnico_id', $uid);
+            $queryMisTickets->where('tecnico_id', $uid);
+            $querySinAsignar->whereNull('tecnico_id');
         } else {
-            $query->whereRaw('0 = 1');
+            $queryMisTickets->whereRaw('0 = 1');
+            $querySinAsignar->whereRaw('0 = 1');
         }
 
         if ($request->filled('estado_id')) {
-            $query->where('estado_actual_id', $request->estado_id);
+            $queryMisTickets->where('estado_actual_id', $request->estado_id);
+            $querySinAsignar->where('estado_actual_id', $request->estado_id);
         }
 
-        $tickets = $query->orderByDesc('updated_at')->get();
+        $misTickets = $queryMisTickets->orderByDesc('updated_at')->get();
+        $ticketsSinAsignar = $querySinAsignar->orderByDesc('updated_at')->get();
 
         return view('mis-tickets.index', [
-            'tickets' => $tickets,
+            'misTickets' => $misTickets,
+            'ticketsSinAsignar' => $ticketsSinAsignar,
             'estados' => Estado::query()->orderBy('id')->get(),
         ]);
     }

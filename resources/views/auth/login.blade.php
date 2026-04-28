@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h1 class="text-xl font-bold text-slate-900">Iniciar sesión</h1>
-        <p class="mt-1 text-sm text-slate-600">Ingresá con tu cuenta para acceder al panel.</p>
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Iniciar sesión</h1>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Ingresá con tu cuenta para acceder al panel.</p>
     </div>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
@@ -41,16 +41,16 @@
             <input
                 id="remember_me"
                 type="checkbox"
-                class="rounded border-slate-300 text-indigo-600 shadow-sm focus:ring-indigo-500"
+                class="rounded border-slate-300 dark:border-slate-500 text-indigo-600 dark:text-indigo-400 shadow-sm dark:shadow-none focus:ring-indigo-500"
                 name="remember"
             />
-            <label for="remember_me" class="text-sm text-slate-600">Recordarme en este equipo</label>
+            <label for="remember_me" class="text-sm text-slate-600 dark:text-slate-400">Recordarme en este equipo</label>
         </div>
 
         <div class="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:items-center sm:justify-between">
             @if (Route::has('password.request'))
                 <a
-                    class="text-center text-sm font-medium text-indigo-600 hover:text-indigo-500 sm:text-left"
+                    class="text-center text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-400 sm:text-left"
                     href="{{ route('password.request') }}"
                 >
                     ¿Olvidaste tu contraseña?
@@ -66,9 +66,9 @@
     </form>
 
     @if (Route::has('register'))
-        <p class="mt-8 border-t border-slate-100 pt-6 text-center text-sm text-slate-600">
+        <p class="mt-8 border-t border-slate-100 dark:border-slate-700 pt-6 text-center text-sm text-slate-600 dark:text-slate-400">
             ¿No tenés cuenta?
-            <a href="{{ route('register') }}" class="font-semibold text-indigo-600 hover:text-indigo-500">
+            <a href="{{ route('register') }}" class="font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-500 dark:hover:text-indigo-400">
                 Registrate
             </a>
         </p>

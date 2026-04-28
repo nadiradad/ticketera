@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h1 class="text-xl font-bold text-slate-900">Nueva contraseña</h1>
-        <p class="mt-1 text-sm text-slate-600">Elegí una contraseña segura para tu cuenta.</p>
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Nueva contraseña</h1>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">Elegí una contraseña segura para tu cuenta.</p>
     </div>
 
     <form method="POST" action="{{ route('password.store') }}" class="space-y-5">

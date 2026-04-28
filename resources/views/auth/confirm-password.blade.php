@@ -1,7 +1,7 @@
 <x-guest-layout>
     <div class="mb-6">
-        <h1 class="text-xl font-bold text-slate-900">Confirmar contraseña</h1>
-        <p class="mt-2 text-sm leading-relaxed text-slate-600">
+        <h1 class="text-xl font-bold text-slate-900 dark:text-white">Confirmar contraseña</h1>
+        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
             Esta sección es segura. Ingresá tu contraseña actual para continuar.
         </p>
     </div>
