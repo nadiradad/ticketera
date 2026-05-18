@@ -52,6 +52,20 @@
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="stock">Stock</label>
+                    <input
+                        id="stock"
+                        type="number"
+                        name="stock"
+                        value="{{ old('stock', $repuesto->stock) }}"
+                        required
+                        class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-500 text-sm shadow-sm dark:shadow-none focus:border-indigo-500 focus:ring-indigo-500"
+                    />
+                    @error('stock')
+                        <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
+                    @enderror
+                </div>
                 <div class="flex flex-wrap gap-3 pt-2">
                     <button
                         type="submit"

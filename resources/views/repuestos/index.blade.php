@@ -15,6 +15,17 @@
             </a>
         </div>
 
+        <div class="grid gap-4 sm:grid-cols-2">
+            <div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none">
+                <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Repuestos</p>
+                <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">{{ $repuestos->count() }}</p>
+            </div>
+            <div class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none">
+                <p class="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">Stock disponible</p>
+                <p class="mt-2 text-3xl font-semibold text-slate-900 dark:text-white">{{ $totalStock }}</p>
+            </div>
+        </div>
+
         @if (session('status'))
             <div class="rounded-lg bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 text-sm text-emerald-800 ring-1 ring-emerald-600/10">
                 {{ session('status') }}
@@ -28,6 +39,7 @@
                         <tr>
                             <th class="px-5 py-3 font-semibold text-slate-700 dark:text-slate-300 sm:px-6">Nombre</th>
                             <th class="px-3 py-3 font-semibold text-slate-700 dark:text-slate-300">Precio base</th>
+                            <th class="px-3 py-3 font-semibold text-slate-700 dark:text-slate-300">Stock</th>
                             <th class="px-5 py-3 text-right font-semibold text-slate-700 dark:text-slate-300 sm:px-6"></th>
                         </tr>
                     </thead>
@@ -36,6 +48,7 @@
                             <tr class="hover:bg-slate-50 dark:hover:bg-slate-900/80">
                                 <td class="px-5 py-3 font-medium text-slate-900 dark:text-white sm:px-6">{{ $r->nombre }}</td>
                                 <td class="px-3 py-3 text-slate-600 dark:text-slate-400">${{ number_format($r->precio_base, 2, ',', '.') }}</td>
+                                <td class="px-3 py-3 text-slate-600 dark:text-slate-400">{{ $r->stock }}</td>
                                 <td class="px-5 py-3 text-right sm:px-6">
                                     <a
                                         href="{{ route('repuestos.edit', $r) }}"

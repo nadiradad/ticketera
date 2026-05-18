@@ -12,8 +12,9 @@ class RepuestoController extends Controller
     public function index(): View
     {
         $repuestos = Repuesto::query()->orderBy('nombre')->get();
+        $totalStock = $repuestos->sum('stock');
 
-        return view('repuestos.index', compact('repuestos'));
+        return view('repuestos.index', compact('repuestos', 'totalStock'));
     }
 
     public function create(): View
@@ -27,6 +28,7 @@ class RepuestoController extends Controller
             'nombre' => ['required', 'string', 'max:255'],
             'descripcion' => ['nullable', 'string'],
             'precio_base' => ['required', 'numeric', 'min:0'],
+            'stock' => ['required', 'integer', 'min:0'],
         ]);
 
         Repuesto::query()->create($data);
@@ -45,6 +47,7 @@ class RepuestoController extends Controller
             'nombre' => ['required', 'string', 'max:255'],
             'descripcion' => ['nullable', 'string'],
             'precio_base' => ['required', 'numeric', 'min:0'],
+            'stock' => ['required', 'integer', 'min:0'],
         ]);
 
         $repuesto->update($data);

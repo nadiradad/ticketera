@@ -10,6 +10,7 @@ class Repuesto extends Model
         'nombre',
         'descripcion',
         'precio_base',
+        'stock',
     ];
 
     public function tickets()

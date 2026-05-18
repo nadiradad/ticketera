@@ -13,7 +13,7 @@ class EstadoHistorial extends Model
         'estado_id',
         'usuario_id',
         'comentario',
-        'fecha'
+        'fecha',
     ];
 
     public function ticket()

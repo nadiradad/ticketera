@@ -46,12 +46,6 @@
                             Clientes
                         </a>
                         <a
-                            href="{{ route('equipos.index') }}"
-                            class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white {{ request()->routeIs('equipos.*') ? 'bg-slate-100 dark:bg-slate-800/50 text-slate-900 dark:text-white' : '' }}"
-                        >
-                            Equipos
-                        </a>
-                        <a
                             href="{{ route('repuestos.index') }}"
                             class="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white {{ request()->routeIs('repuestos.*') ? 'bg-slate-100 dark:bg-slate-800/50 text-slate-900 dark:text-white' : '' }}"
                         >
@@ -194,12 +188,6 @@
                         class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
                     >
                         Clientes
-                    </a>
-                    <a
-                        href="{{ route('equipos.index') }}"
-                        class="rounded-lg px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50"
-                    >
-                        Equipos
                     </a>
                     <a
                         href="{{ route('repuestos.index') }}"

@@ -13,6 +13,14 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth'])->group(function () {
 
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard/export-recaudacion', [DashboardController::class, 'exportRecaudacion'])
+        ->middleware('role:administrador')
+        ->name('dashboard.export.recaudacion');
+    Route::get('/dashboard/download-pdf', [DashboardController::class, 'downloadDashboardPdf'])
+        ->name('dashboard.download.pdf');
+
+    Route::get('/tickets/{ticket}/download-pdf', [TicketController::class, 'downloadPdf'])
+        ->name('tickets.download.pdf');
 
     Route::middleware(['role:tecnico'])->group(function () {
         Route::get('/mis-tickets', [MisTicketsController::class, 'index'])->name('mis-tickets.index');
@@ -22,6 +30,12 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/tickets/{ticket}/repuestos', [TicketController::class, 'agregarRepuesto'])
         ->name('tickets.repuestos.agregar');
+
+    Route::post('/tickets/{ticket}/servicio', [TicketController::class, 'actualizarMontoServicio'])
+        ->name('tickets.servicio.actualizar');
+
+    Route::get('/repuestos/{repuesto}/precio', [TicketController::class, 'obtenerPrecioRepuesto'])
+        ->name('repuestos.precio');
 
     Route::post('/tickets/{ticket}/historial', [TicketController::class, 'agregarHistorial'])
         ->name('tickets.historial.agregar');

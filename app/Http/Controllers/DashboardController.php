@@ -2,15 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cliente;
 use App\Models\Estado;
 use App\Models\Ticket;
 use App\Models\Usuario;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
 {
@@ -27,6 +29,8 @@ class DashboardController extends Controller
 
     public function index(Request $request)
     {
+        $year = (int) $request->query('year', Carbon::now(config('app.timezone'))->year);
+
         $query = Ticket::with(['cliente', 'tecnico', 'estadoActual']);
 
         $this->applyTechnicianScope($query);
@@ -35,8 +39,8 @@ class DashboardController extends Controller
             $query->where('id', $request->ticket_id);
         }
 
-        if ($request->filled('cliente_id')) {
-            $query->where('cliente_id', $request->cliente_id);
+        if ($request->filled('dni')) {
+            $query->whereHas('cliente', fn ($q) => $q->where('dni', 'like', '%'.$request->dni.'%'));
         }
 
         if ($request->filled('estado_id')) {
@@ -47,25 +51,26 @@ class DashboardController extends Controller
 
         return view('dashboard.index', [
             'tickets' => $tickets,
-            'clientes' => Cliente::all(),
             'estados' => Estado::all(),
+            'year' => $year,
             'total' => $this->ticketsTable()->count(),
             'abiertos' => $this->ticketsTable()->where('estado_actual_id', 1)->count(),
             'proceso' => $this->ticketsTable()->where('estado_actual_id', 3)->count(),
             'cerrados' => $this->ticketsTable()->whereIn('estado_actual_id', [4, 5])->count(),
-            'chartData' => $this->buildChartData(),
+            'chartData' => $this->buildChartData($year),
         ]);
     }
 
     /**
      * @return array<string, mixed>
      */
-    private function buildChartData(): array
+    private function buildChartData(int $year): array
     {
         return [
             'porEstado' => $this->chartTicketsPorEstado(),
             'porDia' => $this->chartTicketsCreadosUltimosDias(30),
             'porTecnico' => $this->chartTicketsPorTecnico(),
+            'recaudacionPorMes' => $this->recaudacionPorMes($year),
         ];
     }
 
@@ -163,6 +168,131 @@ class DashboardController extends Controller
                 'count' => (int) $row->cnt,
             ];
         })->all();
+    }
+
+    /**
+     * @return array{labels: array<int, string>, values: array<int, float>}
+     */
+    private function recaudacionPorMes(int $year): array
+    {
+        $closedTickets = Ticket::with('repuestos')
+            ->whereIn('estado_actual_id', [4, 5])
+            ->whereYear('created_at', $year)
+            ->get(['id', 'monto_servicio', 'created_at']);
+
+        $months = collect(range(1, 12))->mapWithKeys(fn ($month) => [
+            $month => ['servicio' => 0.0, 'repuestos' => 0.0],
+        ])->toArray();
+
+        foreach ($closedTickets as $ticket) {
+            $month = (int) $ticket->created_at->format('n');
+            $months[$month]['servicio'] += (float) $ticket->monto_servicio;
+            $months[$month]['repuestos'] += $ticket->repuestos->sum(
+                fn ($repuesto) => $repuesto->pivot->cantidad * $repuesto->pivot->precio_unitario
+            );
+        }
+
+        $labels = [
+            'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+            'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+        ];
+
+        $values = collect($months)->map(fn ($data) => max(0.0, $data['servicio'] - $data['repuestos']))->values()->all();
+
+        return [
+            'labels' => $labels,
+            'values' => $values,
+            'year' => $year,
+        ];
+    }
+
+    public function exportRecaudacion(Request $request): StreamedResponse
+    {
+        $year = (int) $request->query('year', Carbon::now(config('app.timezone'))->year);
+        $report = $this->recaudacionPorMes($year);
+        $filename = "recaudacion_{$year}.csv";
+
+        return response()->streamDownload(function () use ($report) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, ['Mes', 'Monto Servicio', 'Costo Repuestos', 'Recaudación Neta', 'Año']);
+
+            foreach ($report['labels'] as $index => $label) {
+                $monthNumber = $index + 1;
+                $service = $this->recaudacionServicioPorMes($report['year'], $monthNumber);
+                $repuestos = $this->recaudacionCostoRepuestosPorMes($report['year'], $monthNumber);
+                $net = max(0.0, $service - $repuestos);
+
+                fputcsv($handle, [
+                    $label,
+                    number_format($service, 2, '.', ''),
+                    number_format($repuestos, 2, '.', ''),
+                    number_format($net, 2, '.', ''),
+                    $report['year'],
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Cache-Control' => 'no-store, no-cache',
+        ]);
+    }
+
+    public function downloadDashboardPdf(Request $request): Response
+    {
+        $year = (int) $request->query('year', Carbon::now(config('app.timezone'))->year);
+
+        $query = Ticket::with(['cliente', 'tecnico', 'estadoActual']);
+        $this->applyTechnicianScope($query);
+
+        if ($request->filled('ticket_id')) {
+            $query->where('id', $request->ticket_id);
+        }
+
+        if ($request->filled('dni')) {
+            $query->whereHas('cliente', fn ($q) => $q->where('dni', 'like', '%'.$request->dni.'%'));
+        }
+
+        if ($request->filled('estado_id')) {
+            $query->where('estado_actual_id', $request->estado_id);
+        }
+
+        $tickets = $query->get();
+        $chartData = $this->buildChartData($year);
+
+        $pdf = Pdf::loadView('dashboard.pdf', [
+            'tickets' => $tickets,
+            'total' => $this->ticketsTable()->count(),
+            'abiertos' => $this->ticketsTable()->where('estado_actual_id', 1)->count(),
+            'proceso' => $this->ticketsTable()->where('estado_actual_id', 3)->count(),
+            'cerrados' => $this->ticketsTable()->whereIn('estado_actual_id', [4, 5])->count(),
+            'chartData' => $chartData,
+            'year' => $year,
+            'generatedAt' => Carbon::now(),
+        ]);
+
+        return $pdf->download('dashboard_'.Carbon::now()->format('Y-m-d_H-i-s').'.pdf');
+    }
+
+    private function recaudacionServicioPorMes(int $year, int $month): float
+    {
+        return Ticket::whereIn('estado_actual_id', [4, 5])
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->sum('monto_servicio');
+    }
+
+    private function recaudacionCostoRepuestosPorMes(int $year, int $month): float
+    {
+        $tickets = Ticket::with('repuestos')
+            ->whereIn('estado_actual_id', [4, 5])
+            ->whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->get();
+
+        return $tickets->sum(fn ($ticket) => $ticket->repuestos->sum(
+            fn ($repuesto) => $repuesto->pivot->cantidad * $repuesto->pivot->precio_unitario
+        ));
     }
 
     private function ticketsTable(): QueryBuilder

@@ -24,16 +24,23 @@
                     {{ $ticket->created_at?->timezone(config('app.timezone'))->format('d/m/Y H:i') }}
                 </p>
             </div>
-            @can('update', $ticket)
-                <div class="flex flex-wrap gap-2">
+            <div class="flex flex-wrap gap-2">
+                <a
+                    href="{{ route('tickets.download.pdf', $ticket) }}"
+                    class="inline-flex items-center rounded-lg border border-emerald-600 bg-emerald-50 px-4 py-2 text-sm font-semibold text-emerald-700 shadow-sm hover:bg-emerald-100"
+                >
+                    Descargar PDF
+                </a>
+
+                @can('update', $ticket)
                     <a
                         href="{{ route('tickets.edit', $ticket) }}"
                         class="inline-flex rounded-lg bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-sm dark:shadow-none hover:bg-indigo-500"
                     >
                         Editar
                     </a>
-                </div>
-            @endcan
+                @endcan
+            </div>
         </div>
 
         <div class="grid gap-6 lg:grid-cols-3">
@@ -109,6 +116,7 @@
                                     required
                                     class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-500 text-sm shadow-sm dark:shadow-none focus:border-indigo-500 focus:ring-indigo-500"
                                     placeholder="1"
+                                    value="1"
                                 />
                             </div>
                             <div class="lg:col-span-3">
@@ -132,6 +140,43 @@
                                 >
                                     Agregar
                                 </button>
+                            </div>
+                        </form>
+
+                        <form
+                            method="POST"
+                            action="{{ route('tickets.servicio.actualizar', $ticket) }}"
+                            class="mt-6 rounded-xl border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 p-6"
+                        >
+                            @csrf
+
+                            <h2 class="text-base font-semibold text-slate-900 dark:text-white">Precio de servicio</h2>
+                            <p class="mt-0.5 text-sm text-slate-500 dark:text-slate-400">
+                                Ingresá el valor del servicio para que el total sume el servicio más los repuestos.
+                            </p>
+
+                            <div class="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-12 lg:items-end">
+                                <div class="sm:col-span-2 lg:col-span-5">
+                                    <label for="monto_servicio" class="block text-sm font-medium text-slate-700 dark:text-slate-300">Monto de servicio</label>
+                                    <input
+                                        id="monto_servicio"
+                                        type="number"
+                                        step="0.01"
+                                        name="monto_servicio"
+                                        required
+                                        class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-500 text-sm shadow-sm dark:shadow-none focus:border-indigo-500 focus:ring-indigo-500"
+                                        placeholder="0.00"
+                                        value="{{ old('monto_servicio', $ticket->monto_servicio ?? 0) }}"
+                                    />
+                                </div>
+                                <div class="sm:col-span-2 lg:col-span-1">
+                                    <button
+                                        type="submit"
+                                        class="w-full rounded-lg bg-indigo-600 dark:bg-indigo-500 px-4 py-2 text-sm font-semibold text-white shadow-sm dark:shadow-none hover:bg-indigo-500 sm:w-auto"
+                                    >
+                                        Guardar servicio
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -276,4 +321,29 @@
             </div>
         </div>
     </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const repuestoSelect = document.getElementById('repuesto_id');
+    const precioInput = document.getElementById('precio_unitario');
+
+    if (repuestoSelect) {
+        repuestoSelect.addEventListener('change', function() {
+            if (this.value) {
+                fetch(`/repuestos/${this.value}/precio`)
+                    .then(response => response.json())
+                    .then(data => {
+                        precioInput.value = parseFloat(data.precio_base).toFixed(2);
+                    })
+                    .catch(error => console.error('Error:', error));
+            } else {
+                precioInput.value = '';
+            }
+        });
+    }
+});
+</script>
+@endpush
+
 @endsection

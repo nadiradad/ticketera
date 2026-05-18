@@ -64,36 +64,63 @@
                 @endif
             </p>
 
-            <div class="mt-5 grid gap-6 lg:grid-cols-2">
-                <div
-                    class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none sm:p-6"
-                >
-                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Por estado</h3>
-                    <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Distribución actual según estado del ticket.</p>
-                    <div class="relative mx-auto mt-4 h-64 max-w-xs sm:h-72">
-                        <canvas id="chart-tickets-por-estado" aria-label="Gráfico de tickets por estado"></canvas>
+            @if (auth()->user()->isAdministrador())
+                <div class="mt-5 grid gap-6 lg:grid-cols-2">
+                    <div
+                        class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none sm:p-6"
+                    >
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Por estado</h3>
+                                <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Distribución actual según estado del ticket.</p>
+                            </div>
+                            <a
+                                href="{{ route('dashboard.export.recaudacion', ['year' => $year]) }}"
+                                class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-500"
+                            >
+                                Exportar Excel
+                            </a>
+                        </div>
+                        <div class="relative mx-auto mt-4 h-64 max-w-xs sm:h-72">
+                            <canvas id="chart-tickets-por-estado" aria-label="Gráfico de tickets por estado"></canvas>
+                        </div>
+                    </div>
+                    <div
+                        class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none sm:p-6"
+                    >
+                        <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Últimos 30 días</h3>
+                        <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Tickets creados por día.</p>
+                        <div class="relative mt-4 h-64 sm:h-72">
+                            <canvas id="chart-tickets-por-dia" aria-label="Gráfico de tickets creados por día"></canvas>
+                        </div>
                     </div>
                 </div>
-                <div
-                    class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none sm:p-6"
-                >
-                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Últimos 30 días</h3>
-                    <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Tickets creados por día.</p>
-                    <div class="relative mt-4 h-64 sm:h-72">
-                        <canvas id="chart-tickets-por-dia" aria-label="Gráfico de tickets creados por día"></canvas>
-                    </div>
-                </div>
-            </div>
 
-            <div
-                class="mt-6 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none sm:p-6"
-            >
-                <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Por técnico</h3>
-                <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Cantidad de tickets asignados (incluye sin asignar).</p>
-                <div class="relative mt-4 h-56 sm:h-64">
-                    <canvas id="chart-tickets-por-tecnico" aria-label="Gráfico de tickets por técnico"></canvas>
+                <div
+                    class="mt-6 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none sm:p-6"
+                >
+                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Por técnico</h3>
+                    <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Cantidad de tickets asignados (incluye sin asignar).</p>
+                    <div class="relative mt-4 h-56 sm:h-64">
+                        <canvas id="chart-tickets-por-tecnico" aria-label="Gráfico de tickets por técnico"></canvas>
+                    </div>
                 </div>
-            </div>
+
+                <div
+                    class="mt-6 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none sm:p-6"
+                >
+                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Recaudación neta por mes</h3>
+                    <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Ingresos de tickets cerrados menos costo de repuestos por mes.</p>
+                    <div class="relative mt-4 h-72">
+                        <canvas id="chart-recaudacion-por-mes" aria-label="Gráfico de recaudación por mes"></canvas>
+                    </div>
+                </div>
+            @else
+                <div class="mt-5 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800 p-5 shadow-sm dark:shadow-none">
+                    <h3 class="text-sm font-semibold text-slate-800 dark:text-slate-200">Gráficos restringidos</h3>
+                    <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Los gráficos de recaudación están disponibles solo para administradores.</p>
+                </div>
+            @endif
         </div>
 
         <script id="dashboard-charts-payload" type="application/json">
@@ -117,19 +144,15 @@
                     />
                 </div>
                 <div class="sm:col-span-1 lg:col-span-4">
-                    <label for="cliente_id" class="block text-xs font-medium text-slate-600 dark:text-slate-400">Cliente</label>
-                    <select
-                        id="cliente_id"
-                        name="cliente_id"
+                    <label for="dni" class="block text-xs font-medium text-slate-600 dark:text-slate-400">Cliente (DNI)</label>
+                    <input
+                        id="dni"
+                        type="search"
+                        name="dni"
+                        value="{{ request('dni') }}"
+                        placeholder="Ej. 12345678"
                         class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-500 text-sm shadow-sm dark:shadow-none focus:border-indigo-500 focus:ring-indigo-500"
-                    >
-                        <option value="">Todos</option>
-                        @foreach ($clientes as $c)
-                            <option value="{{ $c->id }}" @selected(request('cliente_id') == $c->id)>
-                                {{ $c->nombre }}
-                            </option>
-                        @endforeach
-                    </select>
+                    />
                 </div>
                 <div class="sm:col-span-2 lg:col-span-4">
                     <label for="estado_id" class="block text-xs font-medium text-slate-600 dark:text-slate-400">Estado</label>
@@ -158,6 +181,15 @@
                         class="inline-flex flex-1 items-center justify-center rounded-lg border border-slate-300 dark:border-slate-500 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm dark:shadow-none transition hover:bg-slate-50 dark:hover:bg-slate-900"
                     >
                         Limpiar
+                    </a>
+                    <a
+                        href="{{ route('dashboard.download.pdf', request()->query()) }}"
+                        class="inline-flex flex-1 items-center justify-center gap-2 rounded-lg border border-emerald-600 dark:border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 text-sm font-semibold text-emerald-700 dark:text-emerald-400 shadow-sm dark:shadow-none transition hover:bg-emerald-100 dark:hover:bg-emerald-900/40"
+                    >
+                        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8m0 8l-4-2m4 2l4-2"/>
+                        </svg>
+                        Descargar PDF
                     </a>
                 </div>
             </form>

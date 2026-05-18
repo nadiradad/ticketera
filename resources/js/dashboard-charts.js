@@ -144,4 +144,48 @@ document.addEventListener('DOMContentLoaded', () => {
             },
         });
     }
+
+    const recaudacionEl = document.getElementById('chart-recaudacion-por-mes');
+
+    if (recaudacionEl && data.recaudacionPorMes) {
+        destroyIfExists('recaudacion');
+        window.__dashboardCharts.recaudacion = new Chart(recaudacionEl, {
+            type: 'bar',
+            data: {
+                labels: data.recaudacionPorMes.labels,
+                datasets: [
+                    {
+                        label: 'Recaudación neta',
+                        data: data.recaudacionPorMes.values,
+                        backgroundColor: indigoSoft,
+                        borderColor: indigo,
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                    },
+                ],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { precision: 0 },
+                        grid: { color: 'rgba(148, 163, 184, 0.25)' },
+                    },
+                    x: {
+                        grid: { display: false },
+                    },
+                },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => ` $${context.formattedValue}`,
+                        },
+                    },
+                },
+            },
+        });
+    }
 });

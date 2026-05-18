@@ -76,6 +76,72 @@
                         <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p>
                     @enderror
                 </div>
+                <div class="border-t border-slate-200 dark:border-slate-600 pt-4 mt-6">
+    <h2 class="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+        Datos del equipo
+    </h2>
+
+    <div class="space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="marca">
+                Marca
+            </label>
+
+            <input
+                id="marca"
+                name="marca"
+                value="{{ old('marca') }}"
+                required
+                class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-500 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+
+            @error('marca')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {{ $message }}
+                </p>
+            @enderror
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="modelo">
+                Modelo
+            </label>
+
+            <input
+                id="modelo"
+                name="modelo"
+                value="{{ old('modelo') }}"
+                required
+                class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-500 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            />
+
+            @error('modelo')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {{ $message }}
+                </p>
+            @enderror
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-slate-700 dark:text-slate-300" for="descripcion">
+                Descripción
+            </label>
+
+            <textarea
+                id="descripcion"
+                name="descripcion"
+                rows="3"
+                class="mt-1 block w-full rounded-lg border-slate-300 dark:border-slate-500 text-sm shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+            >{{ old('descripcion') }}</textarea>
+
+            @error('descripcion')
+                <p class="mt-1 text-sm text-red-600 dark:text-red-400">
+                    {{ $message }}
+                </p>
+            @enderror
+        </div>
+    </div>
+</div>
                 <div class="flex gap-3 pt-2">
                     <button
                         type="submit"
